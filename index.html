@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <title>Page Title</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" type="text/css" media="screen" href="main.css" />
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.1.3/css/bootstrap.min.css" integrity="sha384-MCw98/SFnGE8fJT3GXwEOngsV7Zt27NXFoaoApmYm81iuXoPkFOJwJ8ERdknLPMO"
+        crossorigin="anonymous">
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+        <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js"></script>
+      
+        <!-- Firebase Reference -->
+        <script src="https://www.gstatic.com/firebasejs/5.5.0/firebase.js"></script>
+      
+        <!-- Moment.js Reference -->
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.22.2/moment.min.js"></script>
+</head>
+
+<body>
+    <!-- Employee Tracker -->
+    <div class="container">
+
+        <!-- Jumbotron -->
+        <div class="jumbotron" style="background-color: black; color: white">
+            <h1 class="text-center">Anytime is Train Time</h1>
+            <h3 class="text-center">Choo Choo!</h3>
+        </div>
+
+        <div class="row">
+
+            <div class="col-md-12">
+
+                <!-- Current Employees-->
+                <div class="card mb-4">
+                    <div class="card-body">
+                        Current Train Schedule
+                        <table class="table table-sm table-hover" id='employee-table'>
+                            <thead>
+                                <tr>
+                                    <th scope="col">Train Name</th>
+                                    <th scope="col">Destination</th>
+                                    <th scope="col">Frequency (min)</th>
+                                    <th scope="col">Next Arrival</th>
+                                    <th scope="col">Months Away</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="col-md-12">
+                <!-- Add Employee  -->
+                <div class="card mb-4 p-4">
+                    <div class="card-body">
+                        Add Train
+                        <!-- Entry Form -->
+                        <form>
+                            <div class="form-group row">
+                                <label for="train-name-inout">Train Name</label>
+                                <input class="form-control" id="train-name-inout" placeholder="" type="text">
+                            </div>
+                            <div class="form-group row">
+                                <label for="destination-input">Destination</label>
+                                <input class="form-control" id="destination-input" placeholder="SAN" type="text">
+                            </div>
+                            <div class="form-group row">
+                                <label for="start-input">First Train Time (HH:mm - military time)</label>
+                                <input class="form-control" id="start-input" placeholder="00:00" type="text">
+                            </div>
+                            <div class="form-group row">
+                                <label for="rate-input">Frquency (min)</label>
+                                <input class="form-control" id="rate-input" placeholder="200000" type="text">
+                            </div>
+                            <button class="btn btn-primary" id="add-train-btn">Submit</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+    <script src="assets/js/main.js"></script>
+    <script>
+        // Steps to complete:
+
+        // 1. Initialize Firebase
+        // 2. Create button for adding new employees - then update the html + update the database
+        // 3. Create a way to retrieve employees from the employee database.
+        // 4. Create a way to calculate the months worked. Using difference between start and current time.
+        //    Then use moment.js formatting to set difference in months.
+        // 5. Calculate Total billed
+
+        // 1. Initialize Firebase
+        // Initialize Firebase
+        var config = {
+            apiKey: "AIzaSyAsVe8qtQeijjWiOr8ZSMyqdth3uhMNYGk",
+            authDomain: "train-schedular-6a08f.firebaseapp.com",
+            databaseURL: "https://train-schedular-6a08f.firebaseio.com",
+            projectId: "train-schedular-6a08f",
+            storageBucket: "train-schedular-6a08f.appspot.com",
+            messagingSenderId: "901210937818"
+        };
+        firebase.initializeApp(config);
+
+        var database = firebase.database();
+
+        // 2. Button for adding Employees
+        $("#add-train-btn").on("click", function (event) {
+            event.preventDefault();
+
+            // Grabs user input
+            var trainName = $("#train-name-inout").val().trim();
+            var destination = $("#destination-input").val().trim();
+            var empStart = moment($("#start-input").val().trim()).format("MM/DD/YYYY");
+            var empRate = $("#rate-input").val().trim();
+
+            // Creates local "temporary" object for holding employee data
+            // var newEmp = {
+            //   name: trainName,
+            //   role: destination,
+            //   start: empStart,
+            //   rate: empRate
+            // };
+
+            // Uploads employee data to the database
+            database.ref().push({
+                name: trainName,
+                role: destination,
+                start: empStart,
+                rate: empRate
+            });
+
+            // Logs everything to console
+            console.log(newEmp.name);
+            console.log(newEmp.role);
+            console.log(newEmp.start);
+            console.log(newEmp.rate);
+
+            alert("Employee successfully added");
+
+            // Clears all of the text-boxes
+            $("#train-name-inout").val("");
+            $("#destination-input").val("");
+            $("#start-input").val("");
+            $("#rate-input").val("");
+        });
+
+        // 3. Create Firebase event for adding employee to the database and a row in the html when a user adds an entry
+        database.ref().on("child_added", function (childSnapshot) {
+            console.log(childSnapshot.val());
+
+            // Store everything into a variable.
+            var trainName = childSnapshot.val().name;
+            var destination = childSnapshot.val().role;
+            var empStart = childSnapshot.val().start;
+            var empRate = childSnapshot.val().rate;
+
+            // Employee Info
+            console.log(trainName);
+            console.log(destination);
+            console.log(empStart);
+            console.log(empRate);
+
+            // Prettify the employee start
+            var empStartPretty = moment(empStart).format("MM/DD/YYYY");
+            console.log('Start Date', empStartPretty)
+            // Calculate the months worked using hardcore math
+            // To calculate the months worked
+            var empMonths = moment().diff(moment(empStart), "months");
+            console.log(empMonths);
+
+            // Calculate the total billed rate
+            var empBilled = empMonths * empRate;
+            console.log(empBilled);
+
+            // Create the new row
+            var newRow = $("<tr>").append(
+                $("<td>").text(trainName),
+                $("<td>").text(destination),
+                $("<td>").text(empStartPretty),
+                $("<td>").text(empMonths),
+                $("<td>").text(empRate),
+                $("<td>").text(empBilled)
+            );
+
+            // Append the new row to the table
+            $("#employee-table > tbody").append(newRow);
+        });
+
+        // Example Time Math
+        // -----------------------------------------------------------------------------
+        // Assume Employee start date of January 1, 2015
+        // Assume current date is March 1, 2016
+
+        // We know that this is 15 months.
+        // Now we will create code in moment.js to confirm that any attempt we use meets this test case
+    </script>
+</body>
+
+</html>
